@@ -1,0 +1,80 @@
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    ## Enabled by default
+    - errcheck 
+    - gosimple 
+    - govet 
+    - ineffassign 
+    - staticcheck 
+    - unused 
+
+    ## Disabled by default
+    - asasalint 
+    - asciicheck 
+    - bidichk 
+    - bodyclose 
+    - cyclop 
+    - decorder 
+    - dupl 
+    - durationcheck 
+    - errname 
+    - errorlint 
+    - exhaustive 
+    - forbidigo 
+    - funlen 
+    - gocheckcompilerdirectives 
+    - gocognit 
+    - goconst 
+    - gocritic 
+    - gocyclo 
+    - godot 
+    - goimports 
+    - mnd 
+    - gomoddirectives 
+    - gomodguard 
+    - goprintffuncname 
+    - gosec 
+    - lll 
+    - loggercheck 
+    - makezero 
+    - mirror 
+    - musttag 
+    - nakedret 
+    - nestif 
+    - nilerr 
+    - noctx 
+    - nolintlint 
+    - nosprintfhostport 
+    - predeclared 
+    - reassign 
+    - revive 
+    - rowserrcheck 
+    - sqlclosecheck  
+    - testableexamples 
+    - tparallel 
+    - unconvert 
+    - unparam 
+    - usestdlibvars 
+    - wastedassign 
+    - whitespace 
+
+linters-settings:
+  lll:
+    line-length: 160
+  funlen:
+    lines: 90
+    ignore-comments: true
+  nestif:
+    min-complexity: 6
+  cyclop:
+    max-complexity: 20
+issues:
+  exclude-rules:
+    - source: "^func Test"
+      linters:
+        - funlen
+        - dupl
