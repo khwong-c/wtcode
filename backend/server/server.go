@@ -10,11 +10,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/inconshreveable/log15"
 	"github.com/juju/errors"
 	"github.com/samber/do"
 
 	"github.com/khwong-c/wtcode/config"
 	"github.com/khwong-c/wtcode/tooling/di"
+	"github.com/khwong-c/wtcode/tooling/log"
 )
 
 type Server struct {
@@ -22,14 +24,15 @@ type Server struct {
 	Injector *do.Injector
 	Handler  http.Handler
 
-	Config *config.Config
+	config *config.Config
+	logger log15.Logger
 }
 
 func (s *Server) Serve() {
 	go func() {
 		err := s.Server.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			// TODO: Log error
+			s.logger.Error("Server error", "err", err, "stack", errors.ErrorStack(err))
 		}
 	}()
 }
@@ -40,7 +43,8 @@ func (s *Server) Shutdown() error {
 	err := s.Server.Shutdown(ctx)
 
 	if err != nil {
-		return err
+		s.logger.Error("Server shutdown error", "err", err)
+		return errors.Trace(err)
 	}
 	return nil
 }
@@ -55,9 +59,10 @@ func CreateServer(injector *do.Injector) (*Server, error) {
 	var err error
 	server := &Server{
 		Injector: injector,
-		Config:   di.InvokeOrProvide(injector, config.LoadConfig),
+		config:   di.InvokeOrProvide(injector, config.LoadConfig),
+		logger:   log.NewLogger("server"),
 	}
-	server.Addr = fmt.Sprintf(":%d", server.Config.HTTPPort)
+	server.Addr = fmt.Sprintf(":%d", server.config.HTTPPort)
 
 	if err = server.createStack(injector); err != nil {
 		return nil, errors.Trace(err)

@@ -15,19 +15,27 @@ var logger = log.NewLogger("di")
 
 type NamedProvider[T any] func(*do.Injector, string) (T, error)
 
-func providerKey[T any, TProvider do.Provider[T] | NamedProvider[T]](name *string, _ TProvider) string {
-	return invokeKey[T](name)
+func providerKey[T any, TProvider do.Provider[T] | NamedProvider[T]](name *string, provider TProvider) string {
+	return diKey(name, reflect.TypeOf(provider).Out(0))
 }
 
 func invokeKey[T any](name *string) string {
 	var stub T
-	outputType := reflect.TypeOf(stub)
-	if outputType.Kind() == reflect.Ptr {
-		outputType = outputType.Elem()
+	return diKey(name, reflect.TypeOf(stub))
+}
+
+func diKey(name *string, t reflect.Type) string {
+	isPtr := false
+	if t.Kind() == reflect.Ptr {
+		t, isPtr = t.Elem(), true
 	}
 
-	pkgName := outputType.PkgPath()
-	typeName := outputType.Name()
+	pkgName := t.PkgPath()
+	typeName := t.Name()
+	if isPtr {
+		typeName = fmt.Sprintf("*%s", typeName)
+	}
+
 	var depKey string
 	switch name {
 	case nil:
@@ -48,7 +56,7 @@ func InvokeNamed[T any](injector *do.Injector, name *string) T {
 	inst, err := do.InvokeNamed[T](injector, key)
 	if err != nil {
 		logger.Crit("DI: failed to Invoke service", "key", key, "err", err, "stack", errors.ErrorStack(err))
-		panic(errors.Annotatef(err, errors.ErrorStack(err)))
+		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 		//panic(errors.Trace(err))
 	}
 	return inst
@@ -58,8 +66,8 @@ func Provide[T any](injector *do.Injector, provider do.Provider[T]) {
 	key := providerKey[T](nil, provider)
 	inst, err := provider(injector)
 	if err != nil {
-		logger.Crit("DI: failed to provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
-		panic(errors.Annotatef(err, errors.ErrorStack(err)))
+		logger.Crit("DI: failed to Provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
+		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 	}
 	do.ProvideNamedValue(injector, key, inst)
 }
@@ -68,8 +76,8 @@ func ProvideNamed[T any](injector *do.Injector, name string, provider NamedProvi
 	key := providerKey[T](&name, provider)
 	inst, err := provider(injector, name)
 	if err != nil {
-		logger.Crit("DI: failed to provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
-		panic(errors.Annotatef(err, errors.ErrorStack(err)))
+		logger.Crit("DI: failed to Provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
+		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 	}
 	do.ProvideNamedValue(injector, key, inst)
 }
