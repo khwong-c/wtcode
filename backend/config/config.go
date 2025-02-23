@@ -12,7 +12,10 @@ import (
 )
 
 type Config struct {
-	HTTPPort int `default:"8086" usage:"Server port"`
+	HTTPPort  int `default:"8086" usage:"Server port"`
+	SQLTarget struct {
+		Default string `default:"memory" usage:"Default SQL DSN"`
+	}
 }
 
 func DefaultLoaderConfig() aconfig.Config {
