@@ -11,7 +11,17 @@ import (
 	"github.com/samber/do"
 )
 
+type Env string
+
+const (
+	EnvDevelopment Env = "development"
+	EnvTest        Env = "test"
+	EnvStaging     Env = "staging"
+	EnvProduction  Env = "production"
+)
+
 type Config struct {
+	Env       Env `default:"development" usage:"Environment"`
 	HTTPPort  int `default:"8086" usage:"Server port"`
 	SQLTarget struct {
 		Default string `default:"memory" usage:"Default SQL DSN"`
