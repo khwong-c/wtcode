@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/inconshreveable/log15"
 	"github.com/juju/errors"
 	"github.com/samber/do"
 	"github.com/unrolled/render"
 
 	"github.com/khwong-c/wtcode/config"
-	"github.com/khwong-c/wtcode/server/common"
+	"github.com/khwong-c/wtcode/server/middlewares"
 	"github.com/khwong-c/wtcode/tooling/di"
 	"github.com/khwong-c/wtcode/tooling/log"
 )
@@ -23,9 +24,9 @@ type Server struct {
 	Injector *do.Injector
 	Handler  http.Handler
 
-	config      *config.Config
-	logger      log15.Logger
-	errRenderer *render.Render
+	config *config.Config
+	logger log15.Logger
+	render *render.Render
 }
 
 func (s *Server) Serve() {
@@ -52,10 +53,10 @@ func (s *Server) Shutdown() error {
 func CreateServer(injector *do.Injector) (*Server, error) {
 	var err error
 	server := &Server{
-		Injector:    injector,
-		config:      di.InvokeOrProvide(injector, config.LoadConfig),
-		logger:      log.NewLogger("server"),
-		errRenderer: render.New(),
+		Injector: injector,
+		config:   di.InvokeOrProvide(injector, config.LoadConfig),
+		logger:   log.NewLogger("server"),
+		render:   render.New(),
 	}
 	server.Addr = fmt.Sprintf(":%d", server.config.HTTPPort)
 
@@ -75,6 +76,7 @@ func (s *Server) createStack() error {
 func (s *Server) createRoute() (http.Handler, error) {
 	// TODO: How to specify the server we want? Is it DI / Compile time config?
 	r := chi.NewMux()
-	r.Use(common.PanicRecovery(s.config, s.errRenderer))
+	r.Use(middlewares.PanicRecovery(s.config, s.render))
+	r.Use(chiMiddleware.Heartbeat("/health"))
 	return r, errors.NotImplemented
 }

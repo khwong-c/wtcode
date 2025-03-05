@@ -1,4 +1,4 @@
-package common
+package middlewares
 
 import (
 	"net/http"
@@ -31,7 +31,7 @@ const (
 
 const (
 	// DebugAPIKey is the header key for developer to enter debug api key.
-	DebugAPIKey = "X-Debug-Key"
+	DebugAPIKey = "X-Debug-Key" // nolint: gosec
 )
 
 func handleErr(
