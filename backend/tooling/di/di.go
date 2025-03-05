@@ -57,7 +57,6 @@ func InvokeNamed[T any](injector *do.Injector, name *string) T {
 	if err != nil {
 		logger.Crit("DI: failed to Invoke service", "key", key, "err", err, "stack", errors.ErrorStack(err))
 		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
-		//panic(errors.Trace(err))
 	}
 	return inst
 }
