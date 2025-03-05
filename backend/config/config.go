@@ -21,8 +21,9 @@ const (
 )
 
 type Config struct {
-	Env       Env `default:"development" usage:"Environment"`
-	HTTPPort  int `default:"8086" usage:"Server port"`
+	Env       Env    `default:"development" usage:"Environment"`
+	DebugKey  string `usage:"API key to enable debug mode"`
+	HTTPPort  int    `default:"8086" usage:"Server port"`
 	SQLTarget struct {
 		Default string `default:"memory" usage:"Default SQL DSN"`
 	}
