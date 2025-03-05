@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/inconshreveable/log15"
 	"github.com/juju/errors"
 	"github.com/samber/do"
+	"github.com/unrolled/render"
 
 	"github.com/khwong-c/wtcode/config"
+	"github.com/khwong-c/wtcode/server/common"
 	"github.com/khwong-c/wtcode/tooling/di"
 	"github.com/khwong-c/wtcode/tooling/log"
 )
@@ -24,8 +23,9 @@ type Server struct {
 	Injector *do.Injector
 	Handler  http.Handler
 
-	config *config.Config
-	logger log15.Logger
+	config      *config.Config
+	logger      log15.Logger
+	errRenderer *render.Render
 }
 
 func (s *Server) Serve() {
@@ -38,10 +38,10 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	const shutdownDuration = 5 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownDuration)
 	defer cancel()
 	err := s.Server.Shutdown(ctx)
-
 	if err != nil {
 		s.logger.Error("Server shutdown error", "err", err)
 		return errors.Trace(err)
@@ -49,35 +49,32 @@ func (s *Server) Shutdown() error {
 	return nil
 }
 
-func (s *Server) WaitForSignal() {
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-done
-}
-
 func CreateServer(injector *do.Injector) (*Server, error) {
 	var err error
 	server := &Server{
-		Injector: injector,
-		config:   di.InvokeOrProvide(injector, config.LoadConfig),
-		logger:   log.NewLogger("server"),
+		Injector:    injector,
+		config:      di.InvokeOrProvide(injector, config.LoadConfig),
+		logger:      log.NewLogger("server"),
+		errRenderer: render.New(),
 	}
 	server.Addr = fmt.Sprintf(":%d", server.config.HTTPPort)
 
-	if err = server.createStack(injector); err != nil {
+	if err = server.createStack(); err != nil {
 		return nil, errors.Trace(err)
 	}
-	if server.Handler, err = server.createRoute(injector); err != nil {
+	if server.Handler, err = server.createRoute(); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return server, nil
 }
 
-func (s *Server) createStack(injector *do.Injector) error {
+func (s *Server) createStack() error {
 	return errors.NotImplemented
 }
 
-func (s *Server) createRoute(injector *do.Injector) (http.Handler, error) {
+func (s *Server) createRoute() (http.Handler, error) {
+	// TODO: How to specify the server we want? Is it DI / Compile time config?
 	r := chi.NewMux()
+	r.Use(common.PanicRecovery(s.config, s.errRenderer))
 	return r, errors.NotImplemented
 }
