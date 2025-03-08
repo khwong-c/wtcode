@@ -27,6 +27,10 @@ type Config struct {
 	SQLTarget struct {
 		Default string `default:"memory" usage:"Default SQL DSN"`
 	}
+	AdminKey struct {
+		Header string `default:"X-Admin-Key" usage:"Header field for the Admin Mode API key"`
+		Value  string `usage:"Admin Mode API Key"`
+	} `usage:"Admin Mode API key setup"`
 }
 
 func DefaultLoaderConfig() aconfig.Config {
