@@ -18,8 +18,8 @@ type Config struct {
 func DefaultLoaderConfig() aconfig.Config {
 	return aconfig.Config{
 		SkipEnv:   true,
-		SkipFlags: true,
-		Files:     nil,
+		SkipFlags: false,
+		Files:     []string{"config.yaml"},
 		FileDecoders: map[string]aconfig.FileDecoder{
 			".yaml": aconfigyaml.New(),
 			".env":  aconfigdotenv.New(),
