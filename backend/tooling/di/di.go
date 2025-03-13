@@ -15,18 +15,24 @@ var logger = log.NewLogger("di")
 
 type NamedProvider[T any] func(*do.Injector, string) (T, error)
 
-func providerKey[T any, TProvider do.Provider[T] | NamedProvider[T]](name *string, provider TProvider) string {
-	return diKey(name, reflect.TypeOf(provider).Out(0))
+func providerKey[T any, TProvider do.Provider[T] | NamedProvider[T]](name *string, _ TProvider) string {
+	return diKey[T](name)
 }
 
 func invokeKey[T any](name *string) string {
-	var stub T
-	return diKey(name, reflect.TypeOf(stub))
+	return diKey[T](name)
 }
 
-func diKey(name *string, t reflect.Type) string {
+func diKey[T any](tag *string) string {
+	var obj T
+	t := reflect.TypeOf(obj)
 	isPtr := false
-	if t.Kind() == reflect.Ptr {
+	switch {
+	// Interface
+	case t == nil:
+		t = reflect.TypeOf(new(T)).Elem()
+	// Pointer to Struct
+	case t.Kind() == reflect.Ptr:
 		t, isPtr = t.Elem(), true
 	}
 
@@ -37,13 +43,12 @@ func diKey(name *string, t reflect.Type) string {
 	}
 
 	var depKey string
-	switch name {
+	switch tag {
 	case nil:
 		depKey = fmt.Sprintf("%s::%s", pkgName, typeName)
 	default:
-		depKey = fmt.Sprintf("%s::%s#%s", pkgName, typeName, *name)
+		depKey = fmt.Sprintf("%s::%s#%s", pkgName, typeName, *tag)
 	}
-
 	return depKey
 }
 
