@@ -13,6 +13,7 @@ import (
 	"github.com/samber/do"
 	"github.com/unrolled/render"
 
+	"github.com/khwong-c/wtcode/authentication"
 	"github.com/khwong-c/wtcode/config"
 	"github.com/khwong-c/wtcode/server/middlewares"
 	"github.com/khwong-c/wtcode/tooling/di"
@@ -21,12 +22,14 @@ import (
 
 type Server struct {
 	http.Server
-	Injector *do.Injector
+	injector *do.Injector
 	Handler  http.Handler
 
 	config *config.Config
 	logger log15.Logger
 	render *render.Render
+
+	auth authentication.Authenticator
 }
 
 func (s *Server) Serve() {
@@ -53,30 +56,34 @@ func (s *Server) Shutdown() error {
 func CreateServer(injector *do.Injector) (*Server, error) {
 	var err error
 	server := &Server{
-		Injector: injector,
+		injector: injector,
 		config:   di.InvokeOrProvide(injector, config.LoadConfig),
 		logger:   log.NewLogger("server"),
 		render:   render.New(),
+		auth:     di.InvokeOrProvide(injector, authentication.CreateAPIKeyAuthenticator),
 	}
 	server.Addr = fmt.Sprintf(":%d", server.config.HTTPPort)
 
-	if err = server.createStack(); err != nil {
-		return nil, errors.Trace(err)
-	}
 	if server.Handler, err = server.createRoute(); err != nil {
 		return nil, errors.Trace(err)
 	}
 	return server, nil
 }
 
-func (s *Server) createStack() error {
-	return errors.NotImplemented
-}
-
-func (s *Server) createRoute() (http.Handler, error) {
+func (s *Server) createRoute() (http.Handler, error) { //nolint:unparam
 	// TODO: How to specify the server we want? Is it DI / Compile time config?
 	r := chi.NewMux()
 	r.Use(middlewares.PanicRecovery(s.config, s.render))
 	r.Use(chiMiddleware.Heartbeat("/health"))
-	return r, errors.NotImplemented
+	r.With(middlewares.RequireAdminAccess(s.config, s.auth)).Get(
+		"/is_admin",
+		func(w http.ResponseWriter, _ *http.Request) {
+			if err := s.render.JSON(w, http.StatusOK, map[string]interface{}{
+				"is_admin": true,
+			}); err != nil {
+				panic(err)
+			}
+		},
+	)
+	return r, nil
 }
