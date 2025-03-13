@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: alpine.Dockerfile
+      target: builder
+    ports:
+      - "8086:8086"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+
+  appsmith:
+    image: appsmith/appsmith-ce:latest
+    ports:
+      - "7980:80"
+    volumes:
+      - ./volumes/appsmith:/appsmith-stacks
+    env_file:
+      - .env.appsmith
+    links:
+      - backend
