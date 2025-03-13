@@ -31,7 +31,7 @@ const (
 
 const (
 	// DebugAPIKey is the header key for developer to enter debug api key.
-	DebugAPIKey = "X-Debug-Key" // nolint: gosec
+	DebugAPIKey = "X-Debug-Key" //nolint: gosec
 )
 
 func handleErr(
@@ -94,7 +94,7 @@ func handleInternalErr(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	debugging := false
+	var debugging bool
 	switch cfg.Env {
 	case config.EnvDevelopment:
 		debugging = true
@@ -142,12 +142,12 @@ func PanicRecovery(cfg *config.Config, rend *render.Render) func(http.Handler) h
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if rvr := recover(); rvr != nil {
-					if rvr == http.ErrAbortHandler {
-						// we don't recover http.ErrAbortHandler so the response
-						// to the client is aborted, this should not be logged
-						panic(rvr)
-					}
 					if err, ok := rvr.(error); ok {
+						if errors.Is(err, http.ErrAbortHandler) {
+							// we don't recover http.ErrAbortHandler so the response
+							// to the client is aborted, this should not be logged
+							panic(rvr)
+						}
 						handleErr(err, cfg, rend, w, r)
 					} else {
 						errLogger.Crit("U.N.Known Panic Recovered", "panic", rvr)
