@@ -37,6 +37,7 @@ func DefaultLoaderConfig() aconfig.Config {
 	return aconfig.Config{
 		SkipEnv:   true,
 		SkipFlags: false,
+		FileFlag:  "config",
 		Files:     []string{"config.yaml"},
 		FileDecoders: map[string]aconfig.FileDecoder{
 			".yaml": aconfigyaml.New(),
