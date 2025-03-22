@@ -1,43 +1,20 @@
 package tests
 
 import (
-	"flag"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
-	"github.com/cristalhq/aconfig"
-	"github.com/juju/errors"
 	"github.com/samber/do"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/khwong-c/wtcode/config"
 	"github.com/khwong-c/wtcode/server"
+	"github.com/khwong-c/wtcode/tests/fixtures"
 	"github.com/khwong-c/wtcode/tooling/di"
 )
 
 const adminAPIKey = "admin"
-
-func skipConfigFlags(*do.Injector) (*config.Config, error) {
-	newCfg := config.Config{}
-	loaderConfig := config.DefaultLoaderConfig()
-	loaderConfig.SkipFlags = true
-	loader := aconfig.LoaderFor(&newCfg, loaderConfig)
-	if err := loader.Load(); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			os.Exit(0)
-		}
-		return nil, errors.Trace(err)
-	}
-	return patchCfg(&newCfg), nil
-}
-
-// Patch the config for testing.
-func patchCfg(cfg *config.Config) *config.Config {
-	cfg.AdminKey.Value = adminAPIKey
-	return cfg
-}
 
 type SmokeTestSuite struct {
 	suite.Suite
@@ -51,7 +28,16 @@ func TestSmokeTests(t *testing.T) {
 
 func (ts *SmokeTestSuite) SetupSuite() {
 	ts.injector = di.CreateInjector(false, false)
-	di.InvokeOrProvide(ts.injector, skipConfigFlags)
+	di.InvokeOrProvide(ts.injector, func(injector *do.Injector) (*config.Config, error) {
+		cfg, err := fixtures.CreateDefaultConfig(false)
+		if err != nil {
+			return nil, err
+		}
+		// Patch the Config for testing.
+		cfg.AdminKey.Value = adminAPIKey
+		cfg.DBSetup.AutoMigrate = true
+		return cfg, nil
+	})
 
 	if !ts.NotPanics(func() {
 		ts.svr = di.InvokeOrProvide(ts.injector, server.CreateServer)
