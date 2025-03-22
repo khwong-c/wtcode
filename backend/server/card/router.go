@@ -25,6 +25,7 @@ type adminAPI interface {
 type publicAPI interface {
 	GetRandomCardIDs() ([]uuid.UUID, error)
 	GetCard(id uuid.UUID) (Card, error)
+	GetSupportedLanguages() []SupportedLanguage
 }
 
 type API struct {
@@ -51,14 +52,15 @@ func (c *API) Mount(r chi.Router) {
 		r.Use(middlewares.RequireAdminAccess(c.config, c.auth))
 		r.Post("/admin/cards/details", c.getCardsHandler)
 		r.Get("/admin/cards", c.listCardIDsHandler)
-		r.Post("/admin/cards", c.createCardHandler)
-		r.Put("/admin/cards/{id}", c.updateCardHandler)
-		r.Put("/admin/cards/{id}/verify", c.verifyCardHandler)
-		r.Delete("/admin/cards/{id}", c.deleteCardHandler)
+		r.Post("/admin/card", c.createCardHandler)
+		r.Put("/admin/card/{id}", c.updateCardHandler)
+		r.Put("/admin/card/{id}/verify", c.verifyCardHandler)
+		r.Delete("/admin/card/{id}", c.deleteCardHandler)
 	})
 	// Public API
 	r.Group(func(r chi.Router) {
 		r.Get("/cards", c.getRandomCardIDsHandler)
-		r.Get("/cards/{id}", c.getCardHandler)
+		r.Get("/card/{id}", c.getCardHandler)
+		r.Get("/languages", c.getSupportedLanguages)
 	})
 }

@@ -49,7 +49,6 @@ func (c *UpdateCardInput) Validate() error {
 	return nil
 }
 
-func (c *Card) Validate() error {
-	// TODO: Implement validation
-	return nil
+type SupportedLanguage struct {
+	Language string `json:"language"`
 }

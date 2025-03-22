@@ -175,3 +175,10 @@ func (c *API) getCardHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.Trace(err))
 	}
 }
+
+func (c *API) getSupportedLanguages(w http.ResponseWriter, _ *http.Request) {
+	langs := c.public.GetSupportedLanguages()
+	if err := c.render.JSON(w, http.StatusOK, langs); err != nil {
+		panic(errors.Trace(err))
+	}
+}
