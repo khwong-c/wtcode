@@ -27,6 +27,9 @@ type Config struct {
 	SQLTarget struct {
 		Default string `default:"sqlite3::memory:" usage:"Default SQL DSN"`
 	}
+	DBSetup struct {
+		AutoMigrate bool `default:"false" usage:"Auto migrate database"`
+	}
 	AdminKey struct {
 		Header string `default:"X-Admin-Key" usage:"Header field for the Admin Mode API key"`
 		Value  string `usage:"Admin Mode API Key"`
