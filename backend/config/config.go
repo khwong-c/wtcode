@@ -25,7 +25,7 @@ type Config struct {
 	DebugKey  string `usage:"API key to enable debug mode"`
 	HTTPPort  int    `default:"8086" usage:"Server port"`
 	SQLTarget struct {
-		Default string `default:"memory" usage:"Default SQL DSN"`
+		Default string `default:"sqlite3::memory:" usage:"Default SQL DSN"`
 	}
 	AdminKey struct {
 		Header string `default:"X-Admin-Key" usage:"Header field for the Admin Mode API key"`
