@@ -18,7 +18,7 @@ func (c *API) getCardsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&ids); err != nil {
 		panic(errors.Annotate(err, "Failed to decode card id list"))
 	}
-	cards, err := c.admin.GetCards(ids)
+	cards, err := c.admin.GetCards(r.Context(), ids)
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to get cards"))
 	}
@@ -47,7 +47,7 @@ func (c *API) listCardIDsHandler(w http.ResponseWriter, r *http.Request) {
 	if page, err = strconv.Atoi(pageURL); err != nil {
 		panic(errors.Annotate(err, "Failed to parse page"))
 	}
-	ids, err := c.admin.ListID(bs, page)
+	ids, err := c.admin.ListID(r.Context(), bs, page)
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to list card ids"))
 	}
@@ -70,7 +70,7 @@ func (c *API) createCardHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.WithType(err, errors.NotValid))
 	}
 
-	card, err := c.admin.CreateCard(&newCard)
+	card, err := c.admin.CreateCard(r.Context(), &newCard)
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to create card"))
 	}
@@ -89,7 +89,7 @@ func (c *API) verifyCardHandler(w http.ResponseWriter, r *http.Request) {
 		))
 	}
 
-	card, err := c.admin.VerifyCard(id)
+	card, err := c.admin.VerifyCard(r.Context(), id)
 	if err != nil {
 		panic(errors.Annotate(
 			errors.WithType(err, errors.NotValid),
@@ -122,7 +122,7 @@ func (c *API) updateCardHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.WithType(err, errors.NotValid))
 	}
 
-	card, err := c.admin.UpdateCard(id, &newCard)
+	card, err := c.admin.UpdateCard(r.Context(), id, &newCard)
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to create card"))
 	}
@@ -140,7 +140,7 @@ func (c *API) deleteCardHandler(w http.ResponseWriter, r *http.Request) {
 			"Failed to parse id",
 		))
 	}
-	if err := c.admin.DeleteCard(id); err != nil {
+	if err := c.admin.DeleteCard(r.Context(), id); err != nil {
 		panic(errors.Annotate(err, "Failed to delete card"))
 	}
 	if err := c.render.JSON(w, http.StatusOK, common.SuccessResponse); err != nil {
@@ -148,8 +148,8 @@ func (c *API) deleteCardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *API) getRandomCardIDsHandler(w http.ResponseWriter, _ *http.Request) {
-	cardIDs, err := c.public.GetRandomCardIDs()
+func (c *API) getRandomCardIDsHandler(w http.ResponseWriter, r *http.Request) {
+	cardIDs, err := c.public.GetRandomCardIDs(r.Context())
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to get random card ids"))
 	}
@@ -167,7 +167,7 @@ func (c *API) getCardHandler(w http.ResponseWriter, r *http.Request) {
 			"Failed to parse id",
 		))
 	}
-	card, err := c.public.GetCard(id)
+	card, err := c.public.GetCard(r.Context(), id)
 	if err != nil {
 		panic(errors.Annotate(err, "Failed to get card"))
 	}
@@ -176,8 +176,8 @@ func (c *API) getCardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *API) getSupportedLanguages(w http.ResponseWriter, _ *http.Request) {
-	langs := c.public.GetSupportedLanguages()
+func (c *API) getSupportedLanguages(w http.ResponseWriter, r *http.Request) {
+	langs := c.public.GetSupportedLanguages(r.Context())
 	if err := c.render.JSON(w, http.StatusOK, langs); err != nil {
 		panic(errors.Trace(err))
 	}

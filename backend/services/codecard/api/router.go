@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
@@ -14,18 +16,17 @@ import (
 )
 
 type adminAPI interface {
-	GetCards(ids []uuid.UUID) ([]*Card, error)
-	ListID(batchSize, page int) ([]uuid.UUID, error)
-	CreateCard(card *CreateCardInput) (*Card, error)
-	VerifyCard(id uuid.UUID) (*Card, error)
-	DeleteCard(id uuid.UUID) error
-	UpdateCard(id uuid.UUID, card *UpdateCardInput) (*Card, error)
+	GetCards(ctx context.Context, ids []uuid.UUID) ([]*Card, error)
+	ListID(ctx context.Context, batchSize, page int) ([]uuid.UUID, error)
+	CreateCard(ctx context.Context, card *CreateCardInput) (*Card, error)
+	VerifyCard(ctx context.Context, id uuid.UUID) (*Card, error)
+	DeleteCard(ctx context.Context, id uuid.UUID) error
+	UpdateCard(ctx context.Context, id uuid.UUID, card *UpdateCardInput) (*Card, error)
 }
-
 type publicAPI interface {
-	GetRandomCardIDs() ([]uuid.UUID, error)
-	GetCard(id uuid.UUID) (Card, error)
-	GetSupportedLanguages() []SupportedLanguage
+	GetRandomCardIDs(ctx context.Context) ([]uuid.UUID, error)
+	GetCard(ctx context.Context, id uuid.UUID) (Card, error)
+	GetSupportedLanguages(ctx context.Context) []SupportedLanguage
 }
 
 type API struct {
