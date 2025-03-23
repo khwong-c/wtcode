@@ -34,7 +34,7 @@ func (c *API) listCardIDsHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	var bs, page int
 	var err error
-	bsURL, pageURL := r.URL.Query().Get("batch_size"), r.URL.Query().Get("batch_size")
+	bsURL, pageURL := r.URL.Query().Get("batch_size"), r.URL.Query().Get("page")
 	if bsURL == "" {
 		bsURL = defaultBatchSize
 	}
