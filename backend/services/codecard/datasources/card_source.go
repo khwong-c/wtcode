@@ -14,7 +14,7 @@ import (
 )
 
 type CodeCardSource interface {
-	ListCardIDs(ctx context.Context) (uuid.UUIDs, error)
+	ListCardIDs(ctx context.Context, page int, size int) (uuid.UUIDs, error)
 	GetCards(ctx context.Context, ids uuid.UUIDs) ([]*CodeCard, error)
 	AddCard(ctx context.Context, card *CodeCard) error
 	DeleteCard(ctx context.Context, id uuid.UUID) error
@@ -45,9 +45,17 @@ func CreateCodeCardSource(injector *do.Injector) (CodeCardSource, error) {
 	return src, nil
 }
 
-func (s *codeCardSource) ListCardIDs(ctx context.Context) (uuid.UUIDs, error) {
+func (s *codeCardSource) ListCardIDs(ctx context.Context, page int, size int) (uuid.UUIDs, error) {
 	var ids uuid.UUIDs
-	err := s.db.WithContext(ctx).Model(&CodeCard{}).Pluck("id", &ids).Error
+	if size < 0 || page < 0 {
+		return ids, errors.NotValidf("page and size must be non-negative")
+	}
+	q := s.db.WithContext(ctx).Model(&CodeCard{})
+	if size > 0 {
+		off := page * size
+		q = q.Offset(off).Limit(size)
+	}
+	err := q.Pluck("id", &ids).Error
 	return ids, err
 }
 
