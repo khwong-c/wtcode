@@ -1,4 +1,4 @@
-package card
+package api
 
 import (
 	"encoding/json"
