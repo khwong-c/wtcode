@@ -36,8 +36,7 @@ func CreateCodeCardSource(injector *do.Injector) (CodeCardSource, error) {
 		).DB(),
 	}
 	if src.cfg.DBSetup.AutoMigrate {
-		err := src.db.AutoMigrate(allModels...)
-		if err != nil {
+		if err := src.migrateModels(); err != nil {
 			return nil, err
 		}
 	}
