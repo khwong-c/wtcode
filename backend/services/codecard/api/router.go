@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"github.com/samber/do"
 	"github.com/unrolled/render"
@@ -46,8 +45,6 @@ func Create(injector *do.Injector) (*API, error) {
 }
 
 func (c *API) Mount(r chi.Router) {
-	r.Use(middleware.Recoverer)
-
 	// Admin API
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.RequireAdminAccess(c.config, c.auth))
