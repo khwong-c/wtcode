@@ -16,6 +16,7 @@ import (
 	"github.com/khwong-c/wtcode/authentication"
 	"github.com/khwong-c/wtcode/config"
 	"github.com/khwong-c/wtcode/server/middlewares"
+	codecardAPI "github.com/khwong-c/wtcode/services/codecard/api"
 	"github.com/khwong-c/wtcode/tooling/di"
 	"github.com/khwong-c/wtcode/tooling/log"
 )
@@ -85,5 +86,9 @@ func (s *Server) createRoute() (http.Handler, error) { //nolint:unparam
 			}
 		},
 	)
+
+	cardAPI := di.InvokeOrProvide(s.injector, codecardAPI.Create)
+	cardAPI.Mount(r)
+
 	return r, nil
 }
