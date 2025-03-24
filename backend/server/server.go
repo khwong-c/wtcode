@@ -24,7 +24,6 @@ import (
 type Server struct {
 	http.Server
 	injector *do.Injector
-	Handler  http.Handler
 
 	config *config.Config
 	logger log15.Logger
