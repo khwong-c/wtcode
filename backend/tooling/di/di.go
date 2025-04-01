@@ -2,16 +2,12 @@ package di
 
 import (
 	"fmt"
+	"log/slog"
 	"reflect"
 
-	"github.com/inconshreveable/log15"
 	"github.com/juju/errors"
 	"github.com/samber/do"
-
-	"github.com/khwong-c/wtcode/tooling/log"
 )
-
-var logger = log.NewLogger("di")
 
 type NamedProvider[T any] func(*do.Injector, string) (T, error)
 
@@ -60,7 +56,12 @@ func InvokeNamed[T any](injector *do.Injector, name *string) T {
 	key := invokeKey[T](name)
 	inst, err := do.InvokeNamed[T](injector, key)
 	if err != nil {
-		logger.Crit("DI: failed to Invoke service", "key", key, "err", err, "stack", errors.ErrorStack(err))
+		diLogger().Error(
+			"DI: failed to Invoke service",
+			"key", key,
+			"err", err.Error(),
+			"stack", errors.ErrorStack(err),
+		)
 		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 	}
 	return inst
@@ -70,7 +71,12 @@ func Provide[T any](injector *do.Injector, provider do.Provider[T]) {
 	key := providerKey[T](nil, provider)
 	inst, err := provider(injector)
 	if err != nil {
-		logger.Crit("DI: failed to Provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
+		diLogger().Error(
+			"DI: failed to Provide service",
+			"key", key,
+			"err", err.Error(),
+			"stack", errors.ErrorStack(err),
+		)
 		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 	}
 	do.ProvideNamedValue(injector, key, inst)
@@ -80,7 +86,12 @@ func ProvideNamed[T any](injector *do.Injector, name string, provider NamedProvi
 	key := providerKey[T](&name, provider)
 	inst, err := provider(injector, name)
 	if err != nil {
-		logger.Crit("DI: failed to Provide service", "key", key, "err", err, "stack", errors.ErrorStack(err))
+		diLogger().Error(
+			"DI: failed to Provide service",
+			"key", key,
+			"err", err.Error(),
+			"stack", errors.ErrorStack(err),
+		)
 		panic(errors.Annotatef(err, "Stack: %s", errors.ErrorStack(err)))
 	}
 	do.ProvideNamedValue(injector, key, inst)
@@ -102,22 +113,19 @@ func InvokeOrProvideNamed[T any](injector *do.Injector, name string, provider Na
 	return InvokeNamed[T](injector, &name)
 }
 
-func CreateInjector(logging, withStack bool) *do.Injector {
+func CreateInjector(logging bool) *do.Injector {
 	if !logging {
 		return do.New()
 	}
-
-	logger := log.NewLogger("di")
-	if withStack {
-		handler := logger.GetHandler()
-		logger.SetHandler(log15.CallerStackHandler("%+v", handler))
-	}
-
 	return do.NewWithOpts(&do.InjectorOpts{
 		Logf: func(format string, args ...interface{}) {
-			logger.Debug(
+			diLogger().Debug(
 				fmt.Sprintf(format, args...),
 			)
 		},
 	})
+}
+
+func diLogger() *slog.Logger {
+	return slog.Default().With("package", "di")
 }

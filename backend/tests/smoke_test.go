@@ -27,8 +27,8 @@ func TestSmokeTests(t *testing.T) {
 }
 
 func (ts *SmokeTestSuite) SetupSuite() {
-	ts.injector = di.CreateInjector(false, false)
-	di.InvokeOrProvide(ts.injector, func(injector *do.Injector) (*config.Config, error) {
+	ts.injector = di.CreateInjector(false)
+	di.InvokeOrProvide(ts.injector, func(*do.Injector) (*config.Config, error) {
 		cfg, err := fixtures.CreateDefaultConfig(false)
 		if err != nil {
 			return nil, err

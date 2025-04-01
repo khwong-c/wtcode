@@ -11,7 +11,7 @@ import (
 var logger = log.NewLogger("main")
 
 func main() {
-	injector := di.CreateInjector(true, false)
+	injector := di.CreateInjector(true)
 	svr := di.InvokeOrProvide(injector, server.CreateServer)
 	logger.Info("Server created", "addr", svr.Addr)
 
