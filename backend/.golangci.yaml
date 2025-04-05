@@ -1,80 +1,99 @@
-run:
-  timeout: 5m
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    ## Enabled by default
-    - errcheck 
-    - gosimple 
-    - govet 
-    - ineffassign 
-    - staticcheck 
-    - unused 
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - cyclop
+    - decorder
+    - dupl
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - funlen
+    - gocheckcompilerdirectives
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - lll
+    - loggercheck
+    - makezero
+    - mirror
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - predeclared
+    - reassign
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - testableexamples
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - whitespace
+  settings:
+    cyclop:
+      max-complexity: 20
+    funlen:
+      lines: 90
+      ignore-comments: true
+    lll:
+      line-length: 160
+    nestif:
+      min-complexity: 6
+    mnd:
+      ignored-files: []
 
-    ## Disabled by default
-    - asasalint 
-    - asciicheck 
-    - bidichk 
-    - bodyclose 
-    - cyclop 
-    - decorder 
-    - dupl 
-    - durationcheck 
-    - errname 
-    - errorlint 
-    - exhaustive 
-    - forbidigo 
-    - funlen 
-    - gocheckcompilerdirectives 
-    - gocognit 
-    - goconst 
-    - gocritic 
-    - gocyclo 
-    - godot 
-    - goimports 
-    - mnd 
-    - gomoddirectives 
-    - gomodguard 
-    - goprintffuncname 
-    - gosec 
-    - lll 
-    - loggercheck 
-    - makezero 
-    - mirror 
-    - musttag 
-    - nakedret 
-    - nestif 
-    - nilerr 
-    - noctx 
-    - nolintlint 
-    - nosprintfhostport 
-    - predeclared 
-    - reassign 
-    - revive 
-    - rowserrcheck 
-    - sqlclosecheck  
-    - testableexamples 
-    - tparallel 
-    - unconvert 
-    - unparam 
-    - usestdlibvars 
-    - wastedassign 
-    - whitespace 
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - gocognit
+          - funlen
+          - cyclop
+        source: ^func Test
+      - linters:
+          - gosec
+        path: '^.*test\.go$'
+      - linters:
+          - unparam
+          - unused
+        path: '^.*test\.go$'
+    paths: []
 
-linters-settings:
-  lll:
-    line-length: 160
-  funlen:
-    lines: 90
-    ignore-comments: true
-  nestif:
-    min-complexity: 6
-  cyclop:
-    max-complexity: 20
-issues:
-  exclude-rules:
-    - source: "^func Test"
-      linters:
-        - funlen
-        - dupl
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths: []
